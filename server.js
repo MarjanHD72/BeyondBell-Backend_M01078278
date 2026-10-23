@@ -86,6 +86,33 @@ app.put("/lessons/:id", async (req, res) => {
   }
 });
 
+// Search Lessons Route
+app.get("/lessons/search", async (req, res) => {
+  try {
+    const searchText = req.query.q; //Gets the search text from the URL query
+
+    const lessons = await database
+      .collection("lessons")
+      .find({
+        $or: [
+          { topic: { $regex: searchText, $options: "i" } },
+          { location: { $regex: searchText, $options: "i" } },
+          { type: { $regex: searchText, $options: "i" } },
+          { teacher: { $regex: searchText, $options: "i" } },
+        ],
+      })
+      .toArray();
+
+    res.json(lessons);
+  } catch (error) {
+    console.error("Failed to search lessons:", error);
+
+    res.status(500).json({
+      message: "Failed to search lessons",
+    });
+  }
+});
+
 // Create Order Route
 app.post("/orders", async (req, res) => {
   try {
