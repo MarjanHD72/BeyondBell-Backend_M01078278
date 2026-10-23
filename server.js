@@ -2,7 +2,7 @@
 const cors = require("cors");
 require("dotenv").config();
 
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const express = require("express");
 
 const app = express();
@@ -46,6 +46,53 @@ app.get("/lessons", async (req, res) => {
     });
   }
 });
+
+// Update Lesson Route
+app.put("/lessons/:id", async (req, res) => {
+  try {
+    const lessonId = req.params.id;
+    const updatedLesson = req.body;
+
+    const result = await database.collection("lessons").updateOne(
+      { _id: new ObjectId(lessonId) },
+      { $set: updatedLesson }
+    );
+
+    res.json({
+      message: "Lesson updated successfully",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Failed to update lesson:", error);
+
+    res.status(500).json({
+      message: "Failed to update lesson",
+    });
+  }
+});
+
+// Create Order Route
+app.post("/orders", async (req, res) => {
+  try {
+    const order = req.body;
+
+    const result = await database
+      .collection("orders")
+      .insertOne(order);
+
+    res.status(201).json({
+      message: "Order created successfully",
+      orderId: result.insertedId,
+    });
+  } catch (error) {
+    console.error("Failed to create order:", error);
+
+    res.status(500).json({
+      message: "Failed to create order",
+    });
+  }
+});
+
 // Start Server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
