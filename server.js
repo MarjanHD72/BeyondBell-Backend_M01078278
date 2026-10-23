@@ -10,6 +10,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Logger Middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
+// Static Image Middleware
+app.use("/images", express.static("images"));
+
+// Image Error Middleware
+app.use("/images", (req, res) => {
+  res.status(404).json({
+    message: "Image not found",
+  });
+});
+
 const PORT = 3000;
 
 app.get("/", (req, res) => {
@@ -53,10 +69,9 @@ app.put("/lessons/:id", async (req, res) => {
     const lessonId = req.params.id;
     const updatedLesson = req.body;
 
-    const result = await database.collection("lessons").updateOne(
-      { _id: new ObjectId(lessonId) },
-      { $set: updatedLesson }
-    );
+    const result = await database
+      .collection("lessons")
+      .updateOne({ _id: new ObjectId(lessonId) }, { $set: updatedLesson });
 
     res.json({
       message: "Lesson updated successfully",
@@ -76,9 +91,7 @@ app.post("/orders", async (req, res) => {
   try {
     const order = req.body;
 
-    const result = await database
-      .collection("orders")
-      .insertOne(order);
+    const result = await database.collection("orders").insertOne(order);
 
     res.status(201).json({
       message: "Order created successfully",
