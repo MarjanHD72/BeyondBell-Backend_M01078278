@@ -160,6 +160,41 @@ app.get("/teachers/:id/lessons", async (req, res) => {
   }
 });
 
+// Get Enrolment for a Lesson
+app.get("/enrolment/:lessonid", async (req, res) => {
+  try {
+    const lessonId = req.params.lessonid;
+
+    const orders = await database
+      .collection("orders")
+      .find({
+        "items.lessonId": lessonId,
+      })
+      .toArray();
+
+    let totalEnrolment = 0;
+
+    orders.forEach((order) => {
+      order.items.forEach((item) => {
+        if (item.lessonId === lessonId) {
+          totalEnrolment += item.spaces;
+        }
+      });
+    });
+
+    res.json({
+      lessonId: lessonId,
+      enrolment: totalEnrolment,
+    });
+  } catch (error) {
+    console.error("Failed to get enrolment:", error);
+
+    res.status(500).json({
+      message: "Failed to get enrolment",
+    });
+  }
+});
+
 // Create Order Route
 app.post("/orders", async (req, res) => {
   try {
