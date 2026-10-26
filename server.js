@@ -113,6 +113,53 @@ app.get("/lessons/search", async (req, res) => {
   }
 });
 
+// Get Teachers Route
+app.get("/teachers", async (req, res) => {
+  try {
+    const teachers = await database.collection("teachers").find({}).toArray();
+
+    res.json(teachers);
+  } catch (error) {
+    console.error("Failed to get teachers:", error);
+
+    res.status(500).json({
+      message: "Failed to get teachers",
+    });
+  }
+});
+
+// Get Lessons for a Teacher
+app.get("/teachers/:id/lessons", async (req, res) => {
+  try {
+    const teacherId = req.params.id;
+
+    const teacher = await database
+      .collection("teachers")
+      .findOne({ _id: new ObjectId(teacherId) });
+
+    if (!teacher) {
+      return res.status(404).json({
+        message: "Teacher not found",
+      });
+    }
+
+    const lessons = await database
+      .collection("lessons")
+      .find({
+        topic: { $in: teacher.lessonTopics },
+      })
+      .toArray();
+
+    res.json(lessons);
+  } catch (error) {
+    console.error("Failed to get teacher lessons:", error);
+
+    res.status(500).json({
+      message: "Failed to get teacher lessons",
+    });
+  }
+});
+
 // Create Order Route
 app.post("/orders", async (req, res) => {
   try {
