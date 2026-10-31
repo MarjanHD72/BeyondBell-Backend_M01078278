@@ -1,7 +1,8 @@
 // express and connection string to MongoDB
 const cors = require("cors");
 require("dotenv").config();
-
+// Encripting Passwprd
+const bcrypt = require("bcrypt");
 const { MongoClient, ObjectId } = require("mongodb");
 const express = require("express");
 
@@ -215,7 +216,50 @@ app.post("/orders", async (req, res) => {
   }
 });
 
-// Start Server
+// Register User Route
+app.post("/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+
+    const existingUser = await database
+      .collection("users")
+      .findOne({ email: email });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Email already registered",
+      });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = {
+      name: name,
+      email: email,
+      password: hashedPassword,
+    };
+
+    const result = await database.collection("users").insertOne(newUser);
+
+    res.status(201).json({
+      message: "Registration successful",
+      userId: result.insertedId,
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+
+    res.status(500).json({
+      message: "Registration failed",
+    });
+  }
+});
+console.log("Register route loaded");
+// Start Server - keep this last
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
