@@ -26,7 +26,7 @@ app.use("/images", (req, res) => {
   });
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
   res.send("BeyondBell Backend is running");
@@ -35,6 +35,7 @@ app.get("/", (req, res) => {
 const client = new MongoClient(process.env.MONGODB_URI);
 const database = client.db("BeyondBellDB");
 
+// function to connect to DB
 async function connectToDatabase() {
   try {
     await client.connect();
